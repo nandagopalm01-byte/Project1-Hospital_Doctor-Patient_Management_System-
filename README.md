@@ -70,7 +70,7 @@ Generated folders such as `.auth/`, `allure-results/`, `allure-report/`, `test-r
 
 The main specification file is `tests/HMS_04.3.spec.js`. It contains the following 15 test cases:
 
-| Test ID | Scenario | Area |
+| Test ID | Test Cases | Area |
 |---|---|---|
 | HMS_TC_01 | Register a new patient successfully | Patient registration |
 | HMS_TC_02 | Register a patient and log in with the new credentials | Registration and login |
@@ -90,7 +90,6 @@ The main specification file is `tests/HMS_04.3.spec.js`. It contains the followi
 
 The test suite also uses reusable helper functions for patient and doctor login navigation, patient registration, and JavaScript dialog acceptance. The patient fixture logs in with configured patient credentials, and the doctor setup saves browser storage state for authenticated doctor tests.
 
-**Coverage note:** These are the scenarios represented by the current test file, not a claim that every scenario has been independently validated or that the full suite currently passes. Review each test's assertions and the target application's current availability before using a run result as a quality metric.
 
 ## Framework capabilities
 
@@ -158,8 +157,6 @@ DOCTOR_2_PWD=<second-doctor-login-password>
 
 Use valid accounts from your own test environment. The exact variables above are read by the fixture, test specification, and doctor authentication setup. Confirm that the configured `BASE_URL` is the application entry point expected by the project before running tests.
 
-> **Security:** Do not commit `.env`, real credentials, session cookies, or `.auth/user.json`. Use Jenkins credentials or GitHub Actions secrets for CI. Use fictional/sample data in committed JSON files.
-
 ## Running the tests
 
 Run the complete Playwright suite:
@@ -213,28 +210,27 @@ npx allure open allure-report
 
 The Allure CLI must be available in your environment for the report-generation commands. The project includes the `allure-playwright` adapter; the CLI is a separate reporting tool.
 
-Do not commit generated test results or report folders. Share reports as CI artifacts when needed, after ensuring they do not expose credentials or sensitive test data.
-
 ## CI integration
 
 ### Jenkins
 
 The root `JenkinsFile` defines a Windows-oriented pipeline using `bat` commands. It installs npm dependencies and Playwright browsers, loads application credentials through Jenkins `withCredentials`, runs `tests/HMS_04.3.spec.js`, and publishes the Playwright HTML and Allure reports.
 
-Configure the Jenkins credential IDs referenced in the Jenkinsfile and ensure the required Jenkins plugins are installed and configured for HTML and Allure report publishing. The pipeline currently continues to the post-build report stage after test failures; review the pipeline's final build status handling before treating a successful Jenkins build as proof that all tests passed.
+Configure the Jenkins credential IDs referenced in the Jenkinsfile and ensure the required Jenkins plugins are installed and configured for HTML and Allure report publishing. 
+
+The pipeline currently continues to the post-build report stage after test failures; review the pipeline's final build status handling before treating a successful Jenkins build as proof that all tests passed.
 
 ### GitHub Actions
 
 The repository includes `.github/workflows/playwright.yml`. It checks out the code, sets up Node.js, runs `npm ci`, installs Playwright browsers with system dependencies, runs Playwright tests, and uploads the Playwright HTML report as an artifact.
 
-The workflow's current branch filters target `main` and `master`. The project is being maintained on `UPDATED_PROJECT`; add that branch to the workflow trigger if CI should run for pushes and pull requests on this branch. Configure all required environment variables as GitHub Actions secrets and pass them into the test step. The workflow does not currently define those secrets in its job environment, so it is not ready to execute the credential-dependent suite unchanged.
+The workflow's current branch filters target `main` and `master`. The project is being maintained on `UPDATED_PROJECT`.
 
 ## Important maintenance notes
 
 - The project has a configured Chromium project; Firefox and WebKit are present only as commented configuration examples.
 - The suite uses a fixed appointment date in some test cases. Update appointment dates to valid future dates in the target environment before execution.
 - Keep test data isolated and use synthetic patient details. Avoid committing personally identifying or real patient data.
-- Verify that each test asserts the business outcome, not only a success dialog or page navigation.
 - Keep authentication storage and generated reports out of Git.
 - Keep CI branch triggers and required credentials aligned with the branch and tests being executed.
 
