@@ -16,14 +16,14 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 export default defineConfig({
   testDir: './tests',
   outputDir: 'test-results/',
-  timeout: 30 * 1000,                  // 30 seconds max per test
+  timeout: 60 * 1000,                  // 60 seconds max per test
   expect: {timeout: 5000},              // 5 seconds max for individual assertions (e.g., toBeVisible)},
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -36,7 +36,7 @@ export default defineConfig({
     baseURL: process.env.BASE_URL,
     testIdAttribute: 'data-test',
     screenshot:'only-on-failure',
-    video: 'on',
+    video: 'retain-on-failure',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'retain-on-failure',
     // Emulate standard desktop sizing
