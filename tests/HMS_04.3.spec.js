@@ -12,6 +12,7 @@ import patient_details_updation from "../POM/06_patient_details_updation";
 import doctorLogin from "../POM/07_doctor_login.page.js";
 import Doctor_Patient from "../POM/08_doctor_patient.page.js";
 
+//  path.resolve() processes a sequence of paths from right to left to construct a normalized absolute path
 const testDataDir = path.resolve(process.cwd(), "test-data");
 const patientDataPath = path.join(testDataDir, "patient-data.json");
 const medicalHistoryPath = path.join(testDataDir,"patient-medical-history.json");
@@ -26,11 +27,13 @@ const safeTestText = (value) => value.replaceAll("'", "");
 // const uniquePwd = ()=>`${Date.now()}_${Math.floor(Math.random() * 10000)}`
 
 const pdname = safeTestText(fakerdata.getname())
+const pdname_actual = pdname
 
 // --------------------------------------------------
 // REUSABLE HELPERS
 // --------------------------------------------------
 
+// registers a dialog listener, captures the dialog message, accepts the dialog, and executes the supplied action.
 async function withAcceptedDialog(page, action) {
     const dialogPromise = page.waitForEvent("dialog").then(async (dialog) => {
         const message = dialog.message();
@@ -42,6 +45,8 @@ async function withAcceptedDialog(page, action) {
     return message;
 }
 
+// creates a new browser context, opens the HMS application, 
+// navigates to the patient login page, and returns the context and login page.
 async function openPatientLogin(browser) {  
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -80,12 +85,16 @@ async function openDoctorLogin(browser) {
     return { context, page: loginPage };
 }
 
+// creates an instance of the patient login page object and executes the patient login process.
 async function loginPatient(page, email, password) {
     const patientLogin = new patientLog(page);
     await patientLogin.PatientloginProcess(email, password);
     return patientLogin;
 }
 
+// generates dynamic patient information using Faker, generates a unique email address and password, 
+// completes registration, handles the JavaScript alert, and 
+// returns the generated patient information and registration result.
 async function registerNewPatient(page) {
     const patientRegister = new patientregister(page);
     const email = uniqueEmail2();
@@ -121,11 +130,11 @@ test.describe("HMS E2E TESTING ",()=>{
     test.setTimeout(120000);
 
     // --------------------------------------------------
-    // HMS_TS_01: PATIENT REGISTRATION
+    // HMS_TC_01: PATIENT REGISTRATION
     // Functional testing
     // --------------------------------------------------
 
-    test("HMS_TS_01 - Register a new patient successfully", async ({ browser }) => {
+    test("HMS_TC_01 - Register a new patient successfully", async ({ browser }) => {
         const { context, page } = await openPatientLogin(browser);
         const result = await registerNewPatient(page);
         expect(result.message).toBe("Successfully Registered. You can login now");
@@ -134,11 +143,11 @@ test.describe("HMS E2E TESTING ",()=>{
     })
 
     // --------------------------------------------------
-    // HMS_TS_02: REGISTERED PATIENT CAN LOGIN
+    // HMS_TC_02: REGISTERED PATIENT CAN LOGIN
     // Integration testing
     // --------------------------------------------------
 
-    test("HMS_TS_02 - Register a patient and login with the new credentials", async ({ browser }) => {
+    test("HMS_TC_02 - Register a patient and login with the new credentials", async ({ browser }) => {
 
         const { context, page } = await openPatientLogin(browser);
         const result = await registerNewPatient(page);
@@ -153,12 +162,12 @@ test.describe("HMS E2E TESTING ",()=>{
     })
 
     // --------------------------------------------------
-    // HMS_TS_03: VALID LOGIN AND DASHBOARD
+    // HMS_TC_03: VALID LOGIN AND DASHBOARD
     // Functional testing
     // --------------------------------------------------
 
 
-    test("HMS_TS_03 - Login as Patient with valid credentials and verify dashboard", async ({browser }) => {
+    test("HMS_TC_03 - Login as Patient with valid credentials and verify dashboard", async ({browser }) => {
         const { context, page } = await openPatientLogin(browser);
         const patientLogin = await loginPatient(page,validPatient.email,validPatient.pwd)
 
@@ -171,11 +180,11 @@ test.describe("HMS E2E TESTING ",()=>{
     })  
 
     // --------------------------------------------------
-    // HMS_TS_04: OPEN EDIT PROFILE
+    // HMS_TC_04: OPEN EDIT PROFILE
     // Functional testing
     // --------------------------------------------------
 
-    test("HMS_TS_04 - Open Edit Profile and verify page heading", async ({ loggedInPatient  }) => {        
+    test("HMS_TC_04 - Open Edit Profile and verify page heading", async ({ loggedInPatient  }) => {        
         const patientLogin = new patientLog(loggedInPatient) 
         await expect(patientLogin.heading).toHaveText("User | Dashboard");
         await patientLogin.PatientProfile();
@@ -184,11 +193,11 @@ test.describe("HMS E2E TESTING ",()=>{
     })
 
     // --------------------------------------------------
-    // HMS_TS_05: BOOK AN APPOINTMENT
+    // HMS_TC_05: BOOK AN APPOINTMENT
     // Integration testing
     // --------------------------------------------------
     
-    test("HMS_TS_05 - Book an appointment successfully", async ({ loggedInPatient }) => {
+    test("HMS_TC_05 - Book an appointment successfully", async ({ loggedInPatient }) => {
         const patientAppointment = new appointment(loggedInPatient);
         const message = await patientAppointment.appointment_booking(
             "Radiology",
@@ -201,12 +210,12 @@ test.describe("HMS E2E TESTING ",()=>{
 
 
     // --------------------------------------------------
-    // HMS_TS_06: VERIFY APPOINTMENT HISTORY
+    // HMS_TC_06: VERIFY APPOINTMENT HISTORY
     // Integration testing
     // --------------------------------------------------
 
     
-    test("HMS_TS_06 - Verify booked appointment in appointment history", async ({ loggedInPatient }) => {
+    test("HMS_TC_06 - Verify booked appointment in appointment history", async ({ loggedInPatient }) => {
         const patientAppointment = new appointment(loggedInPatient);
         const message3 = await patientAppointment.appointment_booking(
             "Radiology",
@@ -221,11 +230,11 @@ test.describe("HMS E2E TESTING ",()=>{
 
 
     // --------------------------------------------------
-    // HMS_TS_07: UPDATE PATIENT PROFILE
+    // HMS_TC_07: UPDATE PATIENT PROFILE
     // Functional testing
     // --------------------------------------------------
 
-    test("HMS_TS_07 - Update patient profile details", async ({ loggedInPatient }) => {
+    test("HMS_TC_07 - Update patient profile details", async ({ loggedInPatient }) => {
 
         const patientAppointment = new patient_details_updation(loggedInPatient)
 
@@ -242,11 +251,11 @@ test.describe("HMS E2E TESTING ",()=>{
     })
 
     // --------------------------------------------------
-    // HMS_TS_09: UPDATE PATIENT PASSWORD
+    // HMS_TC_09: UPDATE PATIENT PASSWORD
     // Functional testing
     // --------------------------------------------------
 
-    test("HMS_TS_09 - Update patient password",async({browser})=>{
+    test("HMS_TC_09 - Update patient password",async({browser})=>{
         const { context, page } = await openPatientLogin(browser);
         const result = await registerNewPatient(page);
         expect(result.message).toBe("Successfully Registered. You can login now");
@@ -261,11 +270,11 @@ test.describe("HMS E2E TESTING ",()=>{
     })
 
     // --------------------------------------------------
-    // HMS_TS_08: UPDATE EMAIL ADDRESS
+    // HMS_TC_08: UPDATE EMAIL ADDRESS
     // Functional testing
     // --------------------------------------------------
 
-    test("HMS_TS_08 - Update patient email address", async ({ browser }) => {
+    test("HMS_TC_08 - Update patient email address", async ({ browser }) => {
 
         const { context, page } = await openPatientLogin(browser);
         const result = await registerNewPatient(page);
@@ -292,11 +301,11 @@ test.describe("HMS E2E TESTING ",()=>{
 
    
     // --------------------------------------------------
-    // HMS_TS_10: LOGOUT
+    // HMS_TC_10: LOGOUT
     // Functional testing
     // --------------------------------------------------
 
-    test("HMS_TS_10 - Logout and verify protected page access", async ({ loggedInPatient }) => {
+    test("HMS_TC_10 - Logout and verify protected page access", async ({ loggedInPatient }) => {
         const patientLogin = new patientLog(loggedInPatient)
         const BASE_URL ="http://49.249.29.4:8081/TestServer/Build/Hospital_Doctor_Patient_Management_System/";
 
@@ -316,7 +325,7 @@ test.describe("HMS E2E TESTING ",()=>{
         await expect(loggedInPatient).not.toHaveURL(/dashboard\.php/);
     })
 
-    test("HMS_TS_11 - Login as Doctor with valid credentials and verify dashboard", async({browser})=>{
+    test("HMS_TC_11 - Login as Doctor with valid credentials and verify dashboard", async({browser})=>{
         const {context,page} = await openDoctorLogin(browser)
         const drLoginPage = new doctorLogin(page)
 
@@ -328,7 +337,7 @@ test.describe("HMS E2E TESTING ",()=>{
     })
 
 
-    test("HMS_TS_12 - Verify a new Patient's Doctor appointment in Doctor's Appointment history",{tag:'@failed1'}, async ({ browser }) => {
+    test("HMS_TC_12 - Verify a new Patient's Doctor appointment in Doctor's Appointment history",{tag:'@failed1'}, async ({ browser }) => {
         test.setTimeout(240000);
 
         const { context, page } = await openPatientLogin(browser);
@@ -370,7 +379,7 @@ test.describe("HMS E2E TESTING ",()=>{
 test.describe("DOCTOR AUTHENTICATED SCRIPTS",()=>{
     test.use({ storageState:'.auth/user.json'});
     test.setTimeout(120000);
-    test("HMS_TS_13 - Add a Patient and Verify patient is added in Manage Patients",{tag:'@failed2'},async({page})=>{
+    test("HMS_TC_13 - Add a Patient and Verify patient is added in Manage Patients",{tag:'@failed2'},async({page})=>{
 
         await page.goto(
             'http://49.249.29.4:8081/TestServer/Build/Hospital_Doctor_Patient_Management_System/hms/doctor/dashboard.php'
@@ -392,7 +401,7 @@ test.describe("DOCTOR AUTHENTICATED SCRIPTS",()=>{
         await expect(page.locator(`//td[@class="hidden-xs" and normalize-space()="${pdname}"]`).first()).toBeVisible()
     })
 
-    test("HMS_TS_14 - Verify that medical history can be added for a patient",{tag:'@failed2'},async({page})=>{
+    test("HMS_TC_14 - Verify that medical history can be added for a patient",{tag:'@failed2'},async({page})=>{
         await page.goto('http://49.249.29.4:8081/TestServer/Build/Hospital_Doctor_Patient_Management_System/hms/doctor/dashboard.php');
         let mng_patient = new Doctor_Patient(page,"Mohanlal")
         await mng_patient.patient_link.click()
@@ -418,11 +427,12 @@ test.describe("DOCTOR AUTHENTICATED SCRIPTS",()=>{
         
     })
 
-    test("HMS_TS_15 Verify patient's details are visible when entered in Search",{tag:'@auth_test3'},async({page})=>{
+    test("HMS_TC_15 Verify patient's details are visible when entered in Search",{tag:'@failed2'},async({page})=>{
         await page.goto('http://49.249.29.4:8081/TestServer/Build/Hospital_Doctor_Patient_Management_System/hms/doctor/dashboard.php');
         let dr_dashboard = new doctorLogin(page)
-        await dr_dashboard.SearchPatient(pdname)
-        await expect(page.getByRole("row").filter({hasText:`${pdname}`}).first()).toBeVisible()
+        await dr_dashboard.SearchPatient("Mohanlal")
+        await page.waitForTimeout(2000)
+        await expect(page.getByRole("row").filter({hasText:'Mohanlal'}).first()).toBeVisible()
 
     })
 })
